@@ -18,6 +18,12 @@ const load = async () => {
   }
 }
 onMounted(load)
+// a learner's own attendance in this course (silently skipped for instructors and visitors)
+const mine = ref<{ present: number; eligible: number; rate: number | null } | null>(null)
+onMounted(async () => {
+  if (!props.courseId) return
+  try { mine.value = await api.get<any>(`/courses/${props.courseId}/live/my-attendance`, undefined, true) } catch { mine.value = null }
+})
 // refresh states (upcoming -> starting soon -> live) every minute
 let timer: ReturnType<typeof setInterval> | undefined
 onMounted(() => { timer = setInterval(load, 60_000) })
@@ -36,6 +42,10 @@ defineExpose({ reload: load })
 
 <template>
   <div>
+    <p v-if="mine && mine.eligible" class="mb-3 text-sm text-slate-700 flex items-center gap-2">
+      <CheckCircle2 class="w-4 h-4 text-brand-600 shrink-0" />
+      You've attended <b>{{ mine.present }} of {{ mine.eligible }}</b> live {{ mine.eligible === 1 ? 'class' : 'classes' }} ({{ mine.rate }}%).
+    </p>
     <div v-if="loading" class="space-y-2"><div v-for="i in 2" :key="i" class="h-16 rounded-xl bg-slate-100 animate-pulse" /></div>
     <template v-else>
       <div v-if="!upcoming.length && (compact || !past.length)" class="text-center py-8 text-sm text-slate-500">

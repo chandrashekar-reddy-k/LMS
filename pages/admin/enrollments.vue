@@ -104,7 +104,7 @@ const submitAdd = async () => {
       </select>
     </div>
 
-    <div class="card overflow-x-auto">
+    <div class="card overflow-x-auto relative">
       <table class="table-base">
         <thead><tr><th>Learner</th><th v-if="!courseId">Course</th><th>Progress</th><th>Last active</th><th>Enrolled</th><th><span class="sr-only">Actions</span></th></tr></thead>
         <tbody class="divide-y divide-slate-100">

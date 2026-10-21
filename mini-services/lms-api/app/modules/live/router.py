@@ -245,7 +245,85 @@ def attendance(session_id: int, db: Session = Depends(get_db), user: User = Depe
             "present": sum(r["present"] for r in rows), "total": len(rows)}
 
 
+# A learner is flagged when they have missed at least this share of the classes they could attend,
+# or the last N classes in a row.
+AT_RISK_RATE = 60
+AT_RISK_STREAK = 2
+
+
+@router.get("/teach/courses/{course_id}/attendance")
+def course_attendance(course_id: int, db: Session = Depends(get_db), user: User = Depends(staff_required)):
+    """Register for the whole course: every learner against every class that has taken place.
+
+    A class only counts for a learner if it ended after they enrolled, so late joiners
+    aren't marked absent for classes that happened before they arrived."""
+    course = CoursesService.get_course(db, course_id)
+    CoursesService.assert_can_manage(course, user)
+    held = [s for s in db.query(LiveSession).filter_by(course_id=course.id).order_by(LiveSession.starts_at.asc()).all()
+            if _state(s) in ("live", "ended")]
+    ids = [s.id for s in held]
+    marks = {(a.session_id, a.user_id): a for a in
+             db.query(LiveAttendance).filter(LiveAttendance.session_id.in_(ids or [0])).all()}
+    enrollments = (db.query(Enrollment).options(joinedload(Enrollment.user))
+                   .filter(Enrollment.course_id == course.id).all())
+
+    learners = []
+    for e in enrollments:
+        u = e.user
+        if not u or u.role != UserRole.student:
+            continue
+        cells, eligible, present, streak = [], 0, 0, 0
+        for s in held:
+            if e.enrolled_at and _ends_at(s) < e.enrolled_at:
+                cells.append({"session_id": s.id, "status": "not_enrolled"})
+                continue
+            a = marks.get((s.id, u.id))
+            eligible += 1
+            if a:
+                present += 1
+                streak = 0
+                cells.append({"session_id": s.id, "status": "present", "joined_at": a.first_joined_at.isoformat() + "Z"})
+            else:
+                streak += 1
+                cells.append({"session_id": s.id, "status": "absent"})
+        rate = round(100 * present / eligible) if eligible else None
+        learners.append({
+            "user": {"id": u.id, "full_name": u.full_name, "email": u.email},
+            "present": present, "eligible": eligible, "rate": rate, "missed_in_a_row": streak,
+            "at_risk": bool(eligible >= 2 and (rate < AT_RISK_RATE or streak >= AT_RISK_STREAK)),
+            "cells": cells,
+        })
+    learners.sort(key=lambda r: (r["rate"] is None, r["rate"] if r["rate"] is not None else 0, r["user"]["full_name"]))
+    total_eligible = sum(r["eligible"] for r in learners)
+    return {
+        "course": {"id": course.id, "title": course.title},
+        "sessions": [{"id": s.id, "title": s.title, "starts_at": s.starts_at.isoformat() + "Z", "state": _state(s),
+                      "present": sum(1 for r in learners for c in r["cells"] if c["session_id"] == s.id and c["status"] == "present"),
+                      "expected": sum(1 for r in learners for c in r["cells"] if c["session_id"] == s.id and c["status"] != "not_enrolled")}
+                     for s in held],
+        "learners": learners,
+        "overall_rate": round(100 * sum(r["present"] for r in learners) / total_eligible) if total_eligible else None,
+        "at_risk_count": sum(1 for r in learners if r["at_risk"]),
+        "thresholds": {"rate": AT_RISK_RATE, "missed_in_a_row": AT_RISK_STREAK},
+    }
+
+
 # ---------- students (and hosts) ----------
+
+@router.get("/courses/{course_id}/live/my-attendance")
+def my_attendance(course_id: int, db: Session = Depends(get_db), user: User = Depends(any_user)):
+    """A learner's own attendance in one course (classes held since they enrolled)."""
+    course = CoursesService.get_course(db, course_id)
+    e = db.query(Enrollment).filter_by(course_id=course.id, user_id=user.id).first()
+    if not e:
+        raise HTTPException(403, "You're not enrolled in this course")
+    held = [s for s in db.query(LiveSession).filter_by(course_id=course.id).all()
+            if _state(s) in ("live", "ended") and not (e.enrolled_at and _ends_at(s) < e.enrolled_at)]
+    attended = {a.session_id for a in db.query(LiveAttendance).filter(
+        LiveAttendance.user_id == user.id, LiveAttendance.session_id.in_([s.id for s in held] or [0]))}
+    n = len(held)
+    return {"present": len(attended), "eligible": n, "rate": round(100 * len(attended) / n) if n else None}
+
 
 @router.get("/courses/{course_id}/live")
 def course_sessions(course_id: int, db: Session = Depends(get_db), user: User = Depends(any_user)):

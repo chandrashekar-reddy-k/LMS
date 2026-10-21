@@ -87,7 +87,7 @@ const grade = async () => {
 
     <EmptyState v-else-if="data && data.students.length === 0" empty>No enrolled students yet.</EmptyState>
 
-    <div v-else-if="data" class="card overflow-hidden overflow-x-auto">
+    <div v-else-if="data" class="card overflow-hidden overflow-x-auto relative">
       <table class="table-base">
         <thead>
           <tr>

@@ -131,7 +131,7 @@ const relDate = (iso: string) => {
 
     <div v-if="loading" class="card h-72 animate-pulse" />
 
-    <div v-else class="card overflow-hidden overflow-x-auto">
+    <div v-else class="card overflow-hidden overflow-x-auto relative">
       <table class="table-base">
         <thead><tr>
           <th :aria-sort="ariaSort('name')"><button type="button" class="inline-flex items-center gap-1 uppercase hover:text-slate-900" @click="sortBy('name')">User <ArrowUpDown class="w-3.5 h-3.5" /></button></th>

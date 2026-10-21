@@ -37,7 +37,7 @@ const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(undefined, { m
 
     <EmptyState v-else-if="students.length === 0" empty>No one has enrolled yet. Publish and promote your course!</EmptyState>
 
-    <div v-else class="card overflow-hidden overflow-x-auto">
+    <div v-else class="card overflow-hidden overflow-x-auto relative">
       <table class="table-base">
         <thead><tr><th>Student</th><th>Progress</th><th>Status</th><th>Enrolled</th></tr></thead>
         <tbody class="divide-y divide-slate-100">

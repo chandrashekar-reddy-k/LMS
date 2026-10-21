@@ -60,7 +60,7 @@ const restore = async (c: any) => {
       </select>
     </div>
 
-    <div class="card overflow-x-auto">
+    <div class="card overflow-x-auto relative">
       <table class="table-base">
         <thead><tr><th>Serial</th><th>Learner</th><th>Course</th><th>Issued</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
         <tbody class="divide-y divide-slate-100">

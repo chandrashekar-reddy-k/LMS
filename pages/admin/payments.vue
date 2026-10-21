@@ -44,7 +44,7 @@ const badge: Record<string, string> = {
     <div v-else-if="!filtered.length" class="card p-10 text-center text-slate-500">
       <Receipt class="w-10 h-10 mx-auto mb-2 text-slate-300" />No payments yet.
     </div>
-    <div v-else class="card overflow-x-auto">
+    <div v-else class="card overflow-x-auto relative">
       <table class="table-base min-w-[640px]">
         <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
         <tbody class="divide-y divide-slate-100">

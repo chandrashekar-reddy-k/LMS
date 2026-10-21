@@ -132,7 +132,7 @@ const allClear = computed(() => actions.value && !actions.value.to_grade.length 
       </div>
 
       <h2 class="text-lg font-bold text-slate-800 mb-4">Course performance</h2>
-      <div class="card overflow-hidden overflow-x-auto">
+      <div class="card overflow-hidden overflow-x-auto relative">
         <table class="table-base">
           <thead><tr><th>Course</th><th>Status</th><th>Enrollments</th><th>Completions</th><th>Rate</th><th v-if="showRevenue">Revenue</th><th /></tr></thead>
           <tbody class="divide-y divide-slate-100">

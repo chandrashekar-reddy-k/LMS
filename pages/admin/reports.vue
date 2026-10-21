@@ -99,7 +99,7 @@ const ago = (iso: string) => {
             </div>
           </figure>
         </div>
-        <div v-else class="overflow-x-auto">
+        <div v-else class="overflow-x-auto relative">
           <table class="table-base">
             <thead><tr><th>Week of</th><th class="text-right">Enrollments</th><th class="text-right">Completions</th><th class="text-right">Lessons</th></tr></thead>
             <tbody class="divide-y divide-slate-100">
@@ -115,7 +115,7 @@ const ago = (iso: string) => {
       </div>
 
       <!-- per course -->
-      <div class="card overflow-x-auto mb-6">
+      <div class="card overflow-x-auto relative mb-6">
         <h2 class="font-bold text-slate-900 px-5 pt-5 pb-3">By course</h2>
         <table class="table-base">
           <thead><tr><th>Course</th><th class="text-right">Learners</th><th class="text-right">Active ({{ days }}d)</th><th>Average progress</th><th class="text-right">Completion rate</th></tr></thead>

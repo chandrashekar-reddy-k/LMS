@@ -92,7 +92,7 @@ const showRevenue = computed(() => config.value.payments_enabled || items.value.
       </div>
     </div>
 
-    <div class="card overflow-x-auto">
+    <div class="card overflow-x-auto relative">
       <table class="table-base">
         <thead><tr>
           <th>Course</th><th>Instructor</th><th>Status</th><th class="text-right">Learners</th><th class="text-right">Completion</th>
