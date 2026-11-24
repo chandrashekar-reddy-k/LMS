@@ -18,8 +18,8 @@ export default defineNuxtConfig({
   //   NUXT_API_ORIGIN   e.g. https://learnhub-api.vercel.app
   //   NUXT_PROXY_SECRET same value as the API's PROXY_SHARED_SECRET
   runtimeConfig: {
-    apiOrigin: 'http://127.0.0.1:8000',
-    proxySecret: '',
+    apiOrigin: process.env.NUXT_API_ORIGIN || (process.env.VITE_API_URL ? process.env.VITE_API_URL.replace(/\/api\/?$/, '') : 'http://127.0.0.1:8000'),
+    proxySecret: process.env.NUXT_PROXY_SECRET || '',
     public: { demoMode: process.env.NODE_ENV !== 'production' },
   },
   routeRules: {

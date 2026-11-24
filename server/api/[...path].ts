@@ -8,9 +8,13 @@
 import { getRequestIP, proxyRequest } from 'h3'
 
 export default defineEventHandler((event) => {
-  const { apiOrigin, proxySecret } = useRuntimeConfig(event)
-  const target = apiOrigin.replace(/\/$/, '') + event.path   // event.path keeps /api/... and the query
+  const config = useRuntimeConfig(event)
+  const rawOrigin = (config.apiOrigin || process.env.VITE_API_URL || process.env.NUXT_API_ORIGIN || 'http://127.0.0.1:8000') as string
+  // Strip trailing slash and trailing '/api' to avoid duplicate /api in target URL
+  const base = rawOrigin.replace(/\/$/, '').replace(/\/api$/, '')
+  const target = base + event.path // event.path keeps /api/... and the query
   const headers: Record<string, string> = {}
+  const proxySecret = config.proxySecret || process.env.NUXT_PROXY_SECRET || ''
   if (proxySecret) {
     headers['x-lh-proxy-secret'] = proxySecret
     headers['x-lh-client-ip'] = getRequestIP(event, { xForwardedFor: true }) || ''
