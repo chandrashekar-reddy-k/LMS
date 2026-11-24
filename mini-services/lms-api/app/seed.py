@@ -47,9 +47,7 @@ def reset():
     Base_metadata.create_all(bind=engine)
 
 
-def main():
-    reset()
-    db = SessionLocal()
+def populate(db):
     now = utcnow()
 
     # ---------- users ----------
@@ -374,7 +372,27 @@ def main():
     issue_certificate(db, students[1].id, c1.id)   # Emma × Python
     issue_certificate(db, students[3].id, c3.id)   # Olivia × Design
 
-    db.close()
+
+def seed_if_empty() -> bool:
+    """Populates demo data if the database has 0 users. Safe to call on every startup."""
+    db = SessionLocal()
+    try:
+        if db.query(m_auth.User).first() is not None:
+            return False
+        populate(db)
+        print("✅ Database was empty; auto-seed completed successfully!")
+        return True
+    finally:
+        db.close()
+
+
+def main():
+    reset()
+    db = SessionLocal()
+    try:
+        populate(db)
+    finally:
+        db.close()
     print("✅ Seed complete!")
     print("   admin     : admin@infohive.demo / Admin123!")
     print("   instructor: sarah@infohive.demo / Teach123!")

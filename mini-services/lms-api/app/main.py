@@ -59,6 +59,15 @@ async def lifespan(_app: FastAPI):
         except Exception:  # noqa: BLE001 - don't take the API down if the DB is briefly unreachable
             import logging
             logging.getLogger("lms").exception("Startup schema check failed")
+
+    # Automatically populate demo data if database is unseeded (e.g. fresh deployment)
+    try:
+        from app.seed import seed_if_empty
+        seed_if_empty()
+    except Exception:
+        import logging
+        logging.getLogger("lms").exception("Auto-seed check failed")
+
     yield
 
 
@@ -73,6 +82,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
@@ -136,3 +146,15 @@ if _local_uploads:
 @app.get("/api/health")
 def health():
     return {"status": "ok", "app": settings.APP_NAME}
+
+
+@app.get("/api/seed")
+@app.post("/api/seed")
+def trigger_seed():
+    from app.seed import seed_if_empty
+    seeded = seed_if_empty()
+    return {
+        "status": "ok",
+        "seeded": seeded,
+        "message": "Demo data seeded successfully" if seeded else "Database was already seeded"
+    }
